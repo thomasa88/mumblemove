@@ -1,1 +1,3 @@
 *.pro.user
+win-build
+build-*

@@ -1,6 +1,10 @@
 #ifndef MUMBLELINK_H
 #define MUMBLELINK_H
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <QObject>
 
 class MumbleLink : public QObject
