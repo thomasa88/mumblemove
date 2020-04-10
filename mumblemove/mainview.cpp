@@ -1,6 +1,6 @@
 #include "mainview.h"
 
-MainView::MainView()
+void MainView::contextMenuEvent(QContextMenuEvent *event)
 {
-
+    emit contextMenu(event);
 }

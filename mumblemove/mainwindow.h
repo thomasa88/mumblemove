@@ -23,6 +23,7 @@ public:
 
 private:
     int showSettings();
+    void applySettings();
 
     Ui::MainWindow *ui;
     MumbleLink mumble_link;
@@ -33,6 +34,7 @@ private:
 private slots:
     void windowLoaded();
     void sceneClick(qreal x, qreal y);
+    void viewContextMenu(QContextMenuEvent *event);
 };
 
 #endif // MAINWINDOW_H

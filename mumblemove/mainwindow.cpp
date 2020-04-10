@@ -1,11 +1,14 @@
 #include "avatar.h"
 #include "mainwindow.h"
+#include "mainview.h"
 #include "settingsdialog.h"
 #include "ui_mainwindow.h"
 
 #include <QColor>
+#include <QContextMenuEvent>
 #include <QCursor>
 #include <QDebug>
+#include <QMenu>
 #include <QTimer>
 #include <QVariant>
 
@@ -14,6 +17,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     settings("thomasa88", "MumbleMove")
 {
+    setWindowFlag(Qt::WindowStaysOnTopHint, true);
+    setWindowFlag(Qt::FramelessWindowHint, true);
     ui->setupUi(this);
 
     scene.setSceneRect(-100, -100, 200, 200);
@@ -22,10 +27,14 @@ MainWindow::MainWindow(QWidget *parent) :
     user_avatar = new Avatar();
     user_avatar->setPos(0, 0);
     scene.addItem(user_avatar);
-    ui->graphicsView->setCursor(Qt::PointingHandCursor);
-    ui->graphicsView->setScene(&scene);
+
+    MainView *view = new MainView();
+    ui->centralWidget->layout()->addWidget(view);
+    view->setCursor(Qt::PointingHandCursor);
+    view->setScene(&scene);
 
     connect(&scene, &Scene::mouseClick, this, &MainWindow::sceneClick);
+    connect(view, &MainView::contextMenu, this, &MainWindow::viewContextMenu);
 
     mumble_link.update();
 
@@ -46,13 +55,20 @@ void MainWindow::windowLoaded()
            QApplication::exit();
         }
     }
-    user_avatar->setName(settings.value("name", "!").value<QString>());
-    user_avatar->setColor(settings.value("color").value<QColor>());
+    applySettings();
 }
 
 void MainWindow::sceneClick(qreal x, qreal y)
 {
     user_avatar->setPos(x, y);
+}
+
+void MainWindow::viewContextMenu(QContextMenuEvent *event)
+{
+    QMenu menu;
+    menu.addAction("&Settings...", this, &MainWindow::showSettings);
+    menu.addAction("&Exit", &QApplication::quit);
+    menu.exec(event->globalPos());
 }
 
 int MainWindow::showSettings()
@@ -66,6 +82,12 @@ int MainWindow::showSettings()
         settings.setValue("server", settingsDialog.getServer());
         settings.setValue("name", settingsDialog.getName());
         settings.setValue("color", settingsDialog.getColor());
+        applySettings();
     }
     return result;
+}
+
+void MainWindow::applySettings() {
+    user_avatar->setName(settings.value("name", "!").value<QString>());
+    user_avatar->setColor(settings.value("color").value<QColor>());
 }
