@@ -33,7 +33,6 @@ QString SettingsDialog::getName() const
     return ui->nameEdit->text();
 }
 
-
 void SettingsDialog::setName(const QString &value) {
     ui->nameEdit->setText(value);
 }
@@ -44,7 +43,17 @@ QColor SettingsDialog::getColor() const
 }
 
 void SettingsDialog::setColor(const QColor &value) {
-    ui->colorButton->setPalette(value);
+    // Does not work in Windows
+    //ui->colorButton->setPalette(value);
+
+    // Works in Windows, but without border
+//    QPalette palette = ui->colorButton->palette();
+//    palette.setColor(QPalette::Button, value);
+//    ui->colorButton->setFlat(true);
+//    ui->colorButton->setAutoFillBackground(true);
+//    ui->colorButton->setPalette(palette);
+
+    ui->colorButton->setStyleSheet(QString("border: 1px solid black; background-color: %1").arg(value.name()));
 }
 
 void SettingsDialog::showColorDialog() {
