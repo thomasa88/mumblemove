@@ -35,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(&scene, &Scene::mouseClick, this, &MainWindow::sceneClick);
     connect(view, &MainView::contextMenu, this, &MainWindow::viewContextMenu);
+    connect(view, &MainView::moveWindow, this, &MainWindow::moveWindow);
 
     mumble_link.update();
 
@@ -66,9 +67,16 @@ void MainWindow::sceneClick(qreal x, qreal y)
 void MainWindow::viewContextMenu(QContextMenuEvent *event)
 {
     QMenu menu;
+    menu.addAction("Ctrl+Mouse to move window");
+    menu.addSeparator();
     menu.addAction("&Settings...", this, &MainWindow::showSettings);
     menu.addAction("&Exit", &QApplication::quit);
     menu.exec(event->globalPos());
+}
+
+void MainWindow::moveWindow(int x, int y)
+{
+    move(x, y);
 }
 
 int MainWindow::showSettings()

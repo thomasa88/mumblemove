@@ -35,6 +35,7 @@ private slots:
     void windowLoaded();
     void sceneClick(qreal x, qreal y);
     void viewContextMenu(QContextMenuEvent *event);
+    void moveWindow(int x, int y);
 };
 
 #endif // MAINWINDOW_H
