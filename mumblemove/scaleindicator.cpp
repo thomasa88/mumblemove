@@ -11,7 +11,7 @@ ScaleIndicator::ScaleIndicator(qreal pixelsPerMeter) :
 }
 
 QRectF ScaleIndicator::boundingRect() const {
-    qreal width = pixelsPerMeter + 20.0;
+    qreal width = pixelsPerMeter * 10.0 + 30.0;
     qreal height = 10.0;
     return QRectF(0, -height, width, height);
 }
@@ -20,7 +20,7 @@ void ScaleIndicator::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     Q_UNUSED(option);
     Q_UNUSED(widget);
     int indicatorHeight = 3;
-    int indicatorWidth = static_cast<int>(1 * pixelsPerMeter);
+    int indicatorWidth = static_cast<int>(10.0 * pixelsPerMeter);
     painter->setPen(QPen(Qt::gray));
     painter->drawLine(0, -indicatorHeight, 0, 0);
     painter->drawLine(0, -indicatorHeight / 2, indicatorWidth, -indicatorHeight / 2);
@@ -28,6 +28,6 @@ void ScaleIndicator::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
 
     int height = static_cast<int>(boundingRect().height());
     painter->setFont(font);
-    painter->drawText(indicatorWidth + 2, -height + 1, 10, height, Qt::AlignLeft | Qt::AlignTop, "m");
+    painter->drawText(indicatorWidth + 2, -height + 1, 30, height, Qt::AlignLeft | Qt::AlignTop, "10 m");
 }
 
