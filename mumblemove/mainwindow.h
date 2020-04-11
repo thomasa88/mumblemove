@@ -5,6 +5,7 @@
 #include <QMainWindow>
 #include <QGraphicsScene>
 #include <QSettings>
+#include <QTimer>
 
 #include "avatar.h"
 #include "client.h"
@@ -29,6 +30,8 @@ private:
     void applySettings();
     void connectToServer();
     void setStatus(const QString &message);
+    void flash(const QColor &color);
+    void flashReset();
 
     Ui::MainWindow *ui;
     MumbleLink mumbleLink;
@@ -39,6 +42,7 @@ private:
     QSettings settings;
     Client client;
     QMap<quint64, Avatar *> others;
+    QTimer flashResetTimer;
 
 signals:
     void connectClient(const QString &host);

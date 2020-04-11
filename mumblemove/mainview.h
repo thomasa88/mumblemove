@@ -1,6 +1,7 @@
 #ifndef MAINVIEW_H
 #define MAINVIEW_H
 
+#include <QCursor>
 #include <QGraphicsView>
 #include <QObject>
 #include <QPoint>
@@ -14,7 +15,7 @@ class MainView : public QGraphicsView
     Q_OBJECT
 
 public:
-    MainView() = default;
+    MainView();
     virtual ~MainView() override = default;
 
 protected:
@@ -26,6 +27,7 @@ protected:
 private:
     bool dragging = false;
     QPoint dragStart;
+    QCursor defaultCursor = Qt::PointingHandCursor;
 
 signals:
     void contextMenu(QContextMenuEvent *event);

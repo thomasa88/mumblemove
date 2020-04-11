@@ -24,13 +24,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     QRect geo = QGuiApplication::primaryScreen()->geometry();
-    geo.setX(geo.width() - 100 - 200);
+    int xPos = settings.value("windowPosition", geo.width() - 100 - 200).toInt();
+    geo.setX(xPos);
     geo.setWidth(200);
     geo.setHeight(50);
     setGeometry(geo);
 
     view = new MainView();
-    view->setCursor(Qt::PointingHandCursor);
     view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -70,6 +70,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mumbleLink.update();
 
+    flashResetTimer.setSingleShot(true);
+    flashResetTimer.setInterval(500);
+    connect(&flashResetTimer, &QTimer::timeout, this, &MainWindow::flashReset);
+
     QTimer::singleShot(0, this, &MainWindow::windowLoaded);
 }
 
@@ -104,6 +108,15 @@ void MainWindow::setStatus(const QString &message)
     statusText->setToolTip(message);
 }
 
+void MainWindow::flash(const QColor &color) {
+    view->setBackgroundBrush(color);
+    flashResetTimer.start();
+}
+
+void MainWindow::flashReset() {
+    view->setBackgroundBrush(Qt::white);
+}
+
 void MainWindow::moveAvatar(QPointF position)
 {
     userAvatar->setPos(position);
@@ -123,20 +136,33 @@ void MainWindow::viewContextMenu(QContextMenuEvent *event)
 void MainWindow::moveWindow(int x, int y)
 {
     move(x, 0);
+    settings.setValue("windowPosition", x);
 }
 
 void MainWindow::userUpdated(quint64 id, const QString &name, const QColor &color, const QPointF &position) {
     Avatar *other = nullptr;
+    QPointF otherOldPos;
     if (!others.contains(id)) {
         other = new Avatar();
+        other->setBorder(true);
         others.insert(id, other);
         scene.addItem(other);
+        otherOldPos = QPointF(-10000.0, -10000.0);
     } else {
         other = others[id];
+        otherOldPos = other->pos();
     }
+
     other->setName(name);
     other->setColor(color);
     other->setPos(position);
+
+    qreal closeLimit = userAvatar->getSize() * 2.0;
+    bool wasClose = (otherOldPos - userAvatar->pos()).manhattanLength() < closeLimit;
+    bool isClose = (other->pos() - userAvatar->pos()).manhattanLength() < closeLimit;
+    if (isClose && !wasClose) {
+        flash(color);
+    }
 }
 
 void MainWindow::userRemoved(quint64 id) {
@@ -164,7 +190,8 @@ void MainWindow::connected() {
 
 int MainWindow::showSettings()
 {
-    SettingsDialog settingsDialog(this);
+    // Don't set "this" as parent, as the dialog can move the main window in that case
+    SettingsDialog settingsDialog;
     settingsDialog.setServer(settings.value("server", "").value<QString>());
     settingsDialog.setName(settings.value("name", "").value<QString>());
     settingsDialog.setColor(settings.value("color", QColor(Qt::gray)).value<QColor>());
