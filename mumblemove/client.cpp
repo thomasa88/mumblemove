@@ -47,7 +47,7 @@ void Client::updatePosition(const QPointF &position) {
 }
 
 void Client::send() {
-    qDebug() << "Send";
+    qDebug() << "Send" << info.position;
     info.remove = !stayConnected;
     //if (connection.isConnected()) {
         dataStream << info;
@@ -88,7 +88,7 @@ void Client::error(const QAbstractSocket::SocketError &socketError) {
     otherClients.clear();
     QString infoMessage = socket->errorString();
     if (stayConnected) {
-        infoMessage += " Retrying in 2 seconds..";
+        //infoMessage += " Retrying in 2 seconds..";
         QTimer::singleShot(2000, this, &Client::startConnection);
     }
     emit connectionError(infoMessage);

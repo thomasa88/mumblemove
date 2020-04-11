@@ -1,7 +1,6 @@
 #ifndef AVATAR_H
 #define AVATAR_H
 
-//#include <QGraphicsObject>
 #include <QGraphicsItem>
 #include <QPainter>
 

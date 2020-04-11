@@ -10,6 +10,7 @@
 #include "client.h"
 #include "mumblelink.h"
 #include "scene.h"
+#include "mainview.h"
 
 namespace Ui {
 class MainWindow;
@@ -27,11 +28,14 @@ private:
     int showSettings();
     void applySettings();
     void connectToServer();
+    void setStatus(const QString &message);
 
     Ui::MainWindow *ui;
-    MumbleLink mumble_link;
+    MumbleLink mumbleLink;
     Scene scene;
-    Avatar *user_avatar;
+    MainView* view;
+    Avatar *userAvatar;
+    QGraphicsSimpleTextItem *statusText;
     QSettings settings;
     Client client;
     QMap<quint64, Avatar *> others;

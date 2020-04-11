@@ -13,7 +13,7 @@ Scene::~Scene()
 
 void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    // We need to move the avatar before the user starts moving the mouse
+    // We need to "move" the avatar before the user starts moving the mouse
     if (event->buttons() == Qt::LeftButton) {
         emit mouseClick(event->scenePos());
     }

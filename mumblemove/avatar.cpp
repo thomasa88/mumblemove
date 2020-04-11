@@ -21,7 +21,7 @@ void Avatar::setColor(const QColor &color) {
 
 QRectF Avatar::boundingRect() const
 {
-    return QRectF(-15, -15, 30, 30);
+    return QRectF(-10, -10, 20, 20);
 }
 
 void Avatar::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

@@ -8,7 +8,9 @@
 #include <QContextMenuEvent>
 #include <QCursor>
 #include <QDebug>
+#include <QDesktopWidget>
 #include <QMenu>
+#include <QScreen>
 #include <QTimer>
 #include <QVariant>
 
@@ -21,18 +23,40 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowFlag(Qt::FramelessWindowHint, true);
     ui->setupUi(this);
 
-    scene.setSceneRect(-100, -100, 200, 200);
+    QRect geo = QGuiApplication::primaryScreen()->geometry();
+    geo.setX(geo.width() - 100 - 200);
+    geo.setWidth(200);
+    geo.setHeight(50);
+    setGeometry(geo);
+
+    view = new MainView();
+    view->setCursor(Qt::PointingHandCursor);
+    view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //view->setFrameStyle(QFrame::NoFrame);
+    view->setFixedSize(geometry().size());
+    ui->centralWidget->layout()->setContentsMargins(0, 0, 0, 0);
+    ui->centralWidget->layout()->addWidget(view);
+
+    scene.setSceneRect(0, 0, view->frameSize().width(), view->frameSize().height());
+//    view->scale(view->frameSize().width() / scene.sceneRect().width(),
+//                view->frameSize().height() / scene.sceneRect().height());
+    view->setScene(&scene);
+    //view->fitInView(scene.sceneRect(), Qt::KeepAspectRatio);
 
     // Must use "new" as scene takes ownership of the item
-    user_avatar = new Avatar();
-    user_avatar->setPos(0, 0);
-    user_avatar->setZValue(100.0);
-    scene.addItem(user_avatar);
+    userAvatar = new Avatar();
+    userAvatar->setPos(scene.sceneRect().width() / 2.0,
+                       scene.sceneRect().height() / 2.0);
+    userAvatar->setZValue(100.0);
+    scene.addItem(userAvatar);
 
-    MainView *view = new MainView();
-    ui->centralWidget->layout()->addWidget(view);
-    view->setCursor(Qt::PointingHandCursor);
-    view->setScene(&scene);
+    statusText = new QGraphicsSimpleTextItem();
+    statusText->setPos(2, 2);
+    statusText->setBrush(Qt::gray);
+    statusText->setZValue(200.0);
+    scene.addItem(statusText);
 
     connect(&scene, &Scene::mouseClick, this, &MainWindow::sceneClick);
     connect(view, &MainView::contextMenu, this, &MainWindow::viewContextMenu);
@@ -44,11 +68,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&client, &Client::disconnected, this, &MainWindow::disconnected);
     connect(&client, &Client::clientConnected, this, &MainWindow::connected);
 
-//    connect(this, &MainWindow::updatePosition, &client, &Client::updatePosition);
-//    connect(this, &MainWindow::connectClient, &client, &Client::connectClient);
-//    connect(this, &MainWindow::disconnectClient, &client, &Client::disconnectClient);
-
-    mumble_link.update();
+    mumbleLink.update();
 
     QTimer::singleShot(0, this, &MainWindow::windowLoaded);
 }
@@ -60,6 +80,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::windowLoaded()
 {
+    //scene.setSceneRect(0, 0, view->frameSize().width(), view->frameSize().height());
+//    view->scale(view->frameSize().width() / scene.sceneRect().width(),
+//                view->frameSize().height() / scene.sceneRect().height());
+    //view->fitInView(scene.sceneRect(), Qt::KeepAspectRatio);
     if (settings.value("server").isNull() ||
             settings.value("server").toString().isEmpty()) {
         int result = showSettings();
@@ -74,9 +98,15 @@ void MainWindow::connectToServer() {
     emit client.connectClient(settings.value("server").toString());
 }
 
+void MainWindow::setStatus(const QString &message)
+{
+    statusText->setText(message);
+    statusText->setToolTip(message);
+}
+
 void MainWindow::sceneClick(QPointF position)
 {
-    user_avatar->setPos(position);
+    userAvatar->setPos(position);
     emit client.updatePosition(position);
 }
 
@@ -92,7 +122,7 @@ void MainWindow::viewContextMenu(QContextMenuEvent *event)
 
 void MainWindow::moveWindow(int x, int y)
 {
-    move(x, y);
+    move(x, 0);
 }
 
 void MainWindow::userUpdated(quint64 id, const QString &name, const QColor &color, const QPointF &position) {
@@ -119,14 +149,18 @@ void MainWindow::userRemoved(quint64 id) {
 
 void MainWindow::connectionError(const QString &message) {
     qDebug() << "Connection error:" << message;
+    setStatus(tr("Disconnected (%1)").arg(message));
 }
 
 void MainWindow::disconnected() {
     qDebug() << "Disconnected";
+    // connectionError comes first, and gives more info
+    //setStatus("Disconnected");
 }
 
 void MainWindow::connected() {
     qDebug() << "Connected";
+    setStatus("");
 }
 
 int MainWindow::showSettings()
@@ -149,8 +183,8 @@ int MainWindow::showSettings()
 void MainWindow::applySettings() {
     QString name = settings.value("name", "!").value<QString>();
     QColor color = settings.value("color").value<QColor>();
-    user_avatar->setName(name);
-    user_avatar->setColor(color);
+    userAvatar->setName(name);
+    userAvatar->setColor(color);
     client.setInfo(name, color);
     connectToServer();
 }
