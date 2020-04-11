@@ -35,7 +35,8 @@ SOURCES += \
     testobj.cpp \
     settingsdialog.cpp \
     mainview.cpp \
-    client.cpp
+    client.cpp \
+    scaleindicator.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -45,7 +46,8 @@ HEADERS += \
     testobj.h \
     settingsdialog.h \
     mainview.h \
-    client.h
+    client.h \
+    scaleindicator.h
 
 FORMS += \
         mainwindow.ui \

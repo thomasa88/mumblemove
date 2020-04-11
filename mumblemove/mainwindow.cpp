@@ -1,6 +1,7 @@
 #include "avatar.h"
 #include "mainwindow.h"
 #include "mainview.h"
+#include "scaleindicator.h"
 #include "settingsdialog.h"
 #include "ui_mainwindow.h"
 
@@ -60,6 +61,10 @@ MainWindow::MainWindow(QWidget *parent) :
     statusText->setBrush(Qt::gray);
     statusText->setZValue(200.0);
     scene.addItem(statusText);
+
+    ScaleIndicator *scaleIndicator = new ScaleIndicator(PIXELS_PER_METER);
+    scaleIndicator->setPos(2, scene.sceneRect().height() - 3.0);
+    scene.addItem(scaleIndicator);
 
     connect(&scene, &Scene::mouseClick, this, &MainWindow::moveAvatar);
     connect(view, &MainView::contextMenu, this, &MainWindow::viewContextMenu);
