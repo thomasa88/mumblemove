@@ -176,7 +176,6 @@ void MainWindow::userUpdated(quint64 id, const QString &name, const QColor &colo
     if (isClose && !wasClose) {
         flash(color);
     }
-    qDebug() << "DIST" << (otherOldPos - userAvatar->pos()).manhattanLength() << "m";
 }
 
 void MainWindow::userRemoved(quint64 id) {
