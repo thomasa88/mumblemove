@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Must use "new" as scene takes ownership of the item
     user_avatar = new Avatar();
     user_avatar->setPos(0, 0);
+    user_avatar->setZValue(100.0);
     scene.addItem(user_avatar);
 
     MainView *view = new MainView();
@@ -39,9 +40,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(&client, &Client::gotPosition, this, &MainWindow::userUpdated);
     connect(&client, &Client::clientRemoved, this, &MainWindow::userRemoved);
-    connect(&client, &Client::error, this, &MainWindow::connectionError);
+    connect(&client, &Client::connectionError, this, &MainWindow::connectionError);
     connect(&client, &Client::disconnected, this, &MainWindow::disconnected);
-    connect(&client, &Client::connected, this, &MainWindow::connected);
+    connect(&client, &Client::clientConnected, this, &MainWindow::connected);
+
+//    connect(this, &MainWindow::updatePosition, &client, &Client::updatePosition);
+//    connect(this, &MainWindow::connectClient, &client, &Client::connectClient);
+//    connect(this, &MainWindow::disconnectClient, &client, &Client::disconnectClient);
 
     mumble_link.update();
 
@@ -69,9 +74,10 @@ void MainWindow::connectToServer() {
     emit client.connectClient(settings.value("server").toString());
 }
 
-void MainWindow::sceneClick(qreal x, qreal y)
+void MainWindow::sceneClick(QPointF position)
 {
-    user_avatar->setPos(x, y);
+    user_avatar->setPos(position);
+    emit client.updatePosition(position);
 }
 
 void MainWindow::viewContextMenu(QContextMenuEvent *event)
@@ -89,12 +95,26 @@ void MainWindow::moveWindow(int x, int y)
     move(x, y);
 }
 
-void MainWindow::userUpdated(qint64 id, const QString &name, const QColor &color) {
-
+void MainWindow::userUpdated(quint64 id, const QString &name, const QColor &color, const QPointF &position) {
+    Avatar *other = nullptr;
+    if (!others.contains(id)) {
+        other = new Avatar();
+        others.insert(id, other);
+        scene.addItem(other);
+    } else {
+        other = others[id];
+    }
+    other->setName(name);
+    other->setColor(color);
+    other->setPos(position);
 }
 
-void MainWindow::userRemoved(qint64 id) {
-
+void MainWindow::userRemoved(quint64 id) {
+    qDebug() << "USER REMOVED";
+    if (others.contains(id)) {
+        scene.removeItem(others[id]);
+        others.remove(id);
+    }
 }
 
 void MainWindow::connectionError(const QString &message) {
@@ -127,7 +147,10 @@ int MainWindow::showSettings()
 }
 
 void MainWindow::applySettings() {
-    user_avatar->setName(settings.value("name", "!").value<QString>());
-    user_avatar->setColor(settings.value("color").value<QColor>());
+    QString name = settings.value("name", "!").value<QString>();
+    QColor color = settings.value("color").value<QColor>();
+    user_avatar->setName(name);
+    user_avatar->setColor(color);
+    client.setInfo(name, color);
     connectToServer();
 }

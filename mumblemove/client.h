@@ -1,11 +1,12 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <QColor>
 #include <QtNetwork>
 #include <QObject>
 #include <QSharedPointer>
 
-#include "connection.h"
+#include "protocol.h"
 
 class Client : public QObject
 {
@@ -19,28 +20,31 @@ public:
 private:
     void clientUpdate(const ClientInfo &clientInfo);
     void startConnection();
+    void send();
 
     bool stayConnected = false;
-    QSharedPointer<Connection> connection;
     ClientInfo info;
-    QMap<qint64, ClientInfo> otherClients;
+    QMap<quint64, ClientInfo> otherClients;
     QString host;
+    QDataStream dataStream;
+    QSharedPointer<QTcpSocket> socket;
 
 signals:
-    void gotPosition(qint64 id, const QString &name, const QColor &color);
-    void clientRemoved(qint64 id);
-    void error(const QString &message);
+    void gotPosition(quint64 id, const QString &name, const QColor &color, const QPointF &position);
+    void clientRemoved(quint64 id);
+    void connectionError(const QString &message);
     void disconnected();
-    void connected();
+    void clientConnected();
 
 public slots:
     void connectClient(const QString &host);
     void disconnectClient();
-    void sendPosition(const QPoint &position);
+    void updatePosition(const QPointF &position);
 
 private slots:
-    void connectionError(const QString &message);
-    void connectionConnected();
+    void receive();
+    void error(const QAbstractSocket::SocketError &socketError);
+    void connected();
 };
 
 #endif // CLIENT_H

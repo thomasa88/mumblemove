@@ -16,7 +16,7 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
 
 signals:
-    void mouseClick(qreal x, qreal y);
+    void mouseClick(QPointF position);
 };
 
 #endif // SCENE_H

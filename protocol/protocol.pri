@@ -1,11 +1,9 @@
 # TODO: Fix this mess
 SOURCES += \
-    ../protocol/protocol.cpp \
-    ../protocol/connection.cpp
+    ../protocol/protocol.cpp
 
 HEADERS += \
-    ../protocol/protocol.h \
-    ../protocol/connection.h
+    ../protocol/protocol.h
 
 INCLUDEPATH += ../protocol
 

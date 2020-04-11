@@ -10,7 +10,7 @@ class Connection : public QObject
     Q_OBJECT
 
 public:
-    Connection(QAbstractSocket *socket);
+    Connection(quint64 clientId, QAbstractSocket *socket);
     virtual ~Connection() = default;
 
     const ClientInfo &getClientInfo() const;
@@ -19,21 +19,20 @@ public:
 signals:
     void clientUpdate(const ClientInfo &clientInfoBuf);
     void connectionError(const QString &message);
-    void connectedToHost();
-    void disconnected();
 
 public slots:
 
 
 private slots:
-    void data();
+    void receive();
     void error(QAbstractSocket::SocketError socketError);
+    void disconnected();
 
 private:
     QSharedPointer<QAbstractSocket> socket;
-    QDataStream in;
-    //QDataStream out;
+    QDataStream dataStream;
     ClientInfo clientInfoBuf;
+    quint64 clientId;
 };
 
 #endif // CONNECTION_H

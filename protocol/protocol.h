@@ -8,11 +8,11 @@
 const int PORT = 49079;
 
 struct ClientInfo {
-    qint64 id;
+    quint64 id;
     QString name;
     // QColor is a QT GUI class
     quint32 color;
-    QPoint position;
+    QPointF position;
     bool remove;
 };
 

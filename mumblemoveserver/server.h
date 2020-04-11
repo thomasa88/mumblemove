@@ -18,7 +18,7 @@ public:
 private:
     QTcpServer tcpServer;
     QMap<Connection *, QSharedPointer<Connection>> connections;
-    qint64 next_id = 0;
+    quint64 nextId = 0;
 
 public slots:
     void run();
@@ -26,7 +26,6 @@ public slots:
 private slots:
     void newConnection();
     void clientUpdate(const ClientInfo &clientInfo);
-    void clientDisconnected();
 };
 
 #endif // SERVER_H

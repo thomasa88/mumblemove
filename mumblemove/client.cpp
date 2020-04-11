@@ -1,13 +1,14 @@
 #include "client.h"
 #include "protocol.h"
 
-#include <QColor>
-
 Client::Client(QObject *parent) : QObject(parent) {
 
 }
 
 void Client::setInfo(const QString &name, const QColor &color) {
+    // ID is not used when sending
+    info.id = 0;
+
     info.name = name;
     info.color = color.rgb();
     //connection->send(info);
@@ -23,54 +24,71 @@ void Client::startConnection() {
     if (!stayConnected) {
         return;
     }
-    QTcpSocket *socket = new QTcpSocket();
+    socket.reset(new QTcpSocket());
     socket->connectToHost(host, PORT);
-    connection.reset(new Connection(socket));
-    connect(connection.get(), &Connection::clientUpdate, this, &Client::clientUpdate);
-    connect(connection.get(), &Connection::connectionError, this, &Client::connectionError);
-    connect(connection.get(), &Connection::connectedToHost, this, &Client::connectionConnected);
-    connect(connection.get(), &Connection::disconnected, this, &Client::disconnected);
+    dataStream.setDevice(socket.get());
+    dataStream.setVersion(QDataStream::Qt_5_12);
+    connect(socket.get(), &QAbstractSocket::disconnected, this, &Client::disconnected);
+    connect(socket.get(), &QAbstractSocket::connected, this, &Client::connected);
+    connect(socket.get(), &QIODevice::readyRead, this, &Client::receive);
+    connect(socket.get(), QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &Client::error);
 }
 
 void Client::disconnectClient() {
     // connection.disconnect / destructor -> socket.disconnectFromHost() -> emits disconnected signal
     stayConnected = false;
     otherClients.clear();
-    info.remove = stayConnected;
+    send();
 }
 
-void Client::sendPosition(const QPoint &position) {
-    info.remove = stayConnected;
+void Client::updatePosition(const QPointF &position) {
     info.position = position;
+    send();
+}
+
+void Client::send() {
+    info.remove = !stayConnected;
     //if (connection.isConnected()) {
-        connection->send(info);
+        dataStream << info;
     //} or check/ignore error and retry when connected again?
 }
 
-void Client::connectionError(const QString &message) {
+void Client::receive() {
+    dataStream.startTransaction();
+    ClientInfo otherClientInfo;
+    dataStream >> otherClientInfo;
+    if (!dataStream.commitTransaction()) {
+        // Need to receive more
+        return;
+    }
+    if (!stayConnected) {
+        return;
+    }
+    if (otherClientInfo.remove) {
+        otherClients.remove(otherClientInfo.id);
+        emit clientRemoved(otherClientInfo.id);
+    } else {
+        otherClients.insert(otherClientInfo.id, otherClientInfo);
+        emit gotPosition(otherClientInfo.id,
+                         otherClientInfo.name,
+                         QColor::fromRgb(otherClientInfo.color),
+                         otherClientInfo.position);
+    }
+}
+
+void Client::error(const QAbstractSocket::SocketError &socketError) {
+    Q_UNUSED(socketError);
     otherClients.clear();
-    QString infoMessage = message;
+    QString infoMessage = socket->errorString();
     if (stayConnected) {
         infoMessage += " Retrying in 2 seconds..";
         QTimer::singleShot(2000, this, &Client::startConnection);
     }
-    emit error(infoMessage);
+    emit connectionError(infoMessage);
 }
 
-void Client::connectionConnected() {
-    connection->send(info);
-    emit connected();
+void Client::connected() {
+    send();
+    emit clientConnected();
 }
 
-void Client::clientUpdate(const ClientInfo &clientInfo) {
-    if (!stayConnected) {
-        return;
-    }
-    if (clientInfo.remove) {
-        otherClients.remove(clientInfo.id);
-        emit clientRemoved(clientInfo.id);
-    } else {
-        otherClients.insert(clientInfo.id, clientInfo);
-        emit gotPosition(clientInfo.id, clientInfo.name, QColor::fromRgb(clientInfo.color));
-    }
-}
