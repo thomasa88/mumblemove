@@ -15,6 +15,10 @@ void Avatar::setName(const QString &name)
     update();
 }
 
+const QString &Avatar::getName() const {
+    return name;
+}
+
 void Avatar::setColor(const QColor &color) {
     this->color = color;
     update();

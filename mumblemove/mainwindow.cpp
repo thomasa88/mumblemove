@@ -14,6 +14,9 @@
 #include <QTimer>
 #include <QVariant>
 
+// TODO: Work the whole scene in meters?
+const qreal PIXELS_PER_METER = 7.0;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -68,11 +71,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&client, &Client::disconnected, this, &MainWindow::disconnected);
     connect(&client, &Client::clientConnected, this, &MainWindow::connected);
 
-    mumbleLink.update();
-
     flashResetTimer.setSingleShot(true);
     flashResetTimer.setInterval(500);
     connect(&flashResetTimer, &QTimer::timeout, this, &MainWindow::flashReset);
+
+    // If Mumble does not get data in a while, it declares the link to be lost
+    // Don't run until settings has been applied once, to avoid "" user
+    mumbleUpdateTimer.setInterval(1000);
+    connect(&mumbleUpdateTimer, &QTimer::timeout, this, &MainWindow::updateMumble);
 
     QTimer::singleShot(0, this, &MainWindow::windowLoaded);
 }
@@ -120,6 +126,7 @@ void MainWindow::flashReset() {
 void MainWindow::moveAvatar(QPointF position)
 {
     userAvatar->setPos(position);
+    updateMumble();
     emit client.updatePosition(position);
 }
 
@@ -135,6 +142,7 @@ void MainWindow::viewContextMenu(QContextMenuEvent *event)
 
 void MainWindow::moveWindow(int x, int y)
 {
+    Q_UNUSED(y);
     move(x, 0);
     settings.setValue("windowPosition", x);
 }
@@ -163,6 +171,7 @@ void MainWindow::userUpdated(quint64 id, const QString &name, const QColor &colo
     if (isClose && !wasClose) {
         flash(color);
     }
+    qDebug() << "DIST" << (otherOldPos - userAvatar->pos()).manhattanLength() << "m";
 }
 
 void MainWindow::userRemoved(quint64 id) {
@@ -212,5 +221,17 @@ void MainWindow::applySettings() {
     userAvatar->setName(name);
     userAvatar->setColor(color);
     client.setInfo(name, color);
+    updateMumble();
+    mumbleUpdateTimer.start();
     connectToServer();
+}
+
+void MainWindow::updateMumble() {
+    if (mumbleLink.isNull()) {
+        mumbleLink.reset(new MumbleLink);
+    }
+    // Position 0.0 is special in Mumble, it makes Mumble ignore the positional audio
+    QPointF meterPos(userAvatar->pos().x() / PIXELS_PER_METER + 10000.0,
+                     userAvatar->pos().y() / PIXELS_PER_METER + 10000.0);
+    mumbleLink->update(userAvatar->getName(), meterPos);
 }

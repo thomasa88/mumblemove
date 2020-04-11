@@ -32,9 +32,10 @@ private:
     void setStatus(const QString &message);
     void flash(const QColor &color);
     void flashReset();
+    void updateMumble();
 
     Ui::MainWindow *ui;
-    MumbleLink mumbleLink;
+    QSharedPointer<MumbleLink> mumbleLink;
     Scene scene;
     MainView* view;
     Avatar *userAvatar;
@@ -43,6 +44,7 @@ private:
     Client client;
     QMap<quint64, Avatar *> others;
     QTimer flashResetTimer;
+    QTimer mumbleUpdateTimer;
 
 signals:
     void connectClient(const QString &host);

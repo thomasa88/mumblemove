@@ -11,6 +11,7 @@ public:
     Avatar();
 
     void setName(const QString &name);
+    const QString &getName() const;
     void setColor(const QColor &color);
     void setBorder(bool on);
     qreal getSize() const;

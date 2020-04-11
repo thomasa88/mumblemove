@@ -1,6 +1,38 @@
 #include "mumblelink.h"
 
-#include <stdint.h>
+#include <cstdint>
+#include <cstring>
+
+// Mumble coordinate system
+// https://wiki.mumble.info/wiki/Pluginguide//Explanation_of_Sound_and_Coordinate_Systems
+// Person looking into the monitor
+//
+// y
+// ^  z
+// | /
+// |/
+// o------> x
+//
+// Looking from the top, as on a map. Our character (@) looking to the sky.
+//
+//    z
+//    ^      @ front     pos   = (x, 0, z)
+//    | pos. |           front = (0, 1, 0)
+//    |  .   v top       top   = (0, 0,-1)
+//    |.
+//    o------> x
+//   /
+//  /
+// y
+//
+// Our local drawing, on a computer screen, as an image:
+//
+// o------> x          Screen vector: (x, y)
+// |
+// |                   Mumble vector: (x, 0, -y)
+// v
+// y
+//
 
 // Shared memory code from https://wiki.mumble.info/wiki/Link
 
@@ -51,16 +83,16 @@ MumbleLink::~MumbleLink()
 
 }
 
-void MumbleLink::update() {
+void MumbleLink::update(const QString &name, const QPointF& userPositionMeters) {
     if (lm == nullptr)
         return;
 
     if(lm->uiVersion != 2) {
-        wcsncpy(lm->name, L"TestLink", 256);
-        wcsncpy(lm->description, L"TestLink is a test of the Link plugin.", 2048);
+        wcsncpy(lm->name, L"MumbleMove", 256);
+        wcsncpy(lm->description, L"MumbleMove.", 2048);
         lm->uiVersion = 2;
     }
-    lm->uiTick++;
+    lm->uiTick++; // Should this be updated after updating all values???
 
     // Left handed coordinate system.
     // X positive towards "right".
@@ -71,37 +103,29 @@ void MumbleLink::update() {
 
     // Unit vector pointing out of the avatar's eyes aka "At"-vector.
     lm->fAvatarFront[0] = 0.0f;
-    lm->fAvatarFront[1] = 0.0f;
-    lm->fAvatarFront[2] = 1.0f;
+    lm->fAvatarFront[1] = 1.0f;
+    lm->fAvatarFront[2] = 0.0f;
 
-    // Unit vector pointing out of the top of the avatar's head aka "Up"-vector (here Top points straight up).
+    // Unit vector pointing out of the top of the avatar's head aka "Up"-vector.
     lm->fAvatarTop[0] = 0.0f;
-    lm->fAvatarTop[1] = 1.0f;
-    lm->fAvatarTop[2] = 0.0f;
+    lm->fAvatarTop[1] = 0.0f;
+    lm->fAvatarTop[2] = -1.0f;
 
-    // Position of the avatar (here standing slightly off the origin)
-    lm->fAvatarPosition[0] = 0.001f;
+    // Position of the avatar
+    lm->fAvatarPosition[0] = static_cast<float>(userPositionMeters.x());
     lm->fAvatarPosition[1] = 0.0f;
-    lm->fAvatarPosition[2] = 0.5f;
+    lm->fAvatarPosition[2] = static_cast<float>(-userPositionMeters.y());
 
     // Same as avatar but for the camera.
-    lm->fCameraPosition[0] = 0.0f;
-    lm->fCameraPosition[1] = 0.0f;
-    lm->fCameraPosition[2] = 0.0f;
-
-    lm->fCameraFront[0] = 0.0f;
-    lm->fCameraFront[1] = 0.0f;
-    lm->fCameraFront[2] = 1.0f;
-
-    lm->fCameraTop[0] = 0.0f;
-    lm->fCameraTop[1] = 1.0f;
-    lm->fCameraTop[2] = 0.0f;
+    memcpy(lm->fCameraFront, lm->fAvatarFront, sizeof(lm->fCameraFront));
+    memcpy(lm->fCameraTop, lm->fAvatarTop, sizeof(lm->fCameraTop));
+    memcpy(lm->fCameraPosition, lm->fAvatarPosition, sizeof(lm->fCameraPosition));
 
     // Identifier which uniquely identifies a certain player in a context (e.g. the ingame name).
-    wcsncpy(lm->identity, L"Unique ID", 256);
+    wcsncpy(lm->identity, name.toStdWString().c_str(), 256);
     // Context should be equal for players which should be able to hear each other positional and
     // differ for those who shouldn't (e.g. it could contain the server+port and team)
-    memcpy(lm->context, "ContextBlob\x00\x01\x02\x03\x04", 16);
-    lm->context_len = 16;
+    lm->context_len = static_cast<uint32_t>(snprintf(reinterpret_cast<char *>(lm->context),
+                                                     sizeof(lm->context), "MumbleMoveContext"));
 }
 

@@ -6,6 +6,7 @@
 #endif
 
 #include <QObject>
+#include <QPoint>
 
 class MumbleLink : public QObject
 {
@@ -14,7 +15,7 @@ public:
     explicit MumbleLink(QObject *parent = nullptr);
     ~MumbleLink();
 
-    void update();
+    void update(const QString &name, const QPointF& userPositionMeters);
 
 private:
     struct LinkedMem {
