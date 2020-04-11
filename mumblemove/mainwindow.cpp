@@ -37,6 +37,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(view, &MainView::contextMenu, this, &MainWindow::viewContextMenu);
     connect(view, &MainView::moveWindow, this, &MainWindow::moveWindow);
 
+    connect(&client, &Client::gotPosition, this, &MainWindow::userUpdated);
+    connect(&client, &Client::clientRemoved, this, &MainWindow::userRemoved);
+    connect(&client, &Client::error, this, &MainWindow::connectionError);
+    connect(&client, &Client::disconnected, this, &MainWindow::disconnected);
+    connect(&client, &Client::connected, this, &MainWindow::connected);
+
     mumble_link.update();
 
     QTimer::singleShot(0, this, &MainWindow::windowLoaded);
@@ -59,6 +65,10 @@ void MainWindow::windowLoaded()
     applySettings();
 }
 
+void MainWindow::connectToServer() {
+    emit client.connectClient(settings.value("server").toString());
+}
+
 void MainWindow::sceneClick(qreal x, qreal y)
 {
     user_avatar->setPos(x, y);
@@ -79,12 +89,33 @@ void MainWindow::moveWindow(int x, int y)
     move(x, y);
 }
 
+void MainWindow::userUpdated(qint64 id, const QString &name, const QColor &color) {
+
+}
+
+void MainWindow::userRemoved(qint64 id) {
+
+}
+
+void MainWindow::connectionError(const QString &message) {
+    qDebug() << "Connection error:" << message;
+}
+
+void MainWindow::disconnected() {
+    qDebug() << "Disconnected";
+}
+
+void MainWindow::connected() {
+    qDebug() << "Connected";
+}
+
 int MainWindow::showSettings()
 {
     SettingsDialog settingsDialog(this);
     settingsDialog.setServer(settings.value("server", "").value<QString>());
     settingsDialog.setName(settings.value("name", "").value<QString>());
     settingsDialog.setColor(settings.value("color", QColor(Qt::gray)).value<QColor>());
+    // This modal dialog will likely mess with our network communication
     int result = settingsDialog.exec();
     if (result == QDialog::Accepted) {
         settings.setValue("server", settingsDialog.getServer());
@@ -98,4 +129,5 @@ int MainWindow::showSettings()
 void MainWindow::applySettings() {
     user_avatar->setName(settings.value("name", "!").value<QString>());
     user_avatar->setColor(settings.value("color").value<QColor>());
+    connectToServer();
 }

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -24,6 +24,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++11
 
+include(../protocol/protocol.pri)
+
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
@@ -32,7 +34,8 @@ SOURCES += \
     scene.cpp \
     testobj.cpp \
     settingsdialog.cpp \
-    mainview.cpp
+    mainview.cpp \
+    client.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -41,7 +44,8 @@ HEADERS += \
     scene.h \
     testobj.h \
     settingsdialog.h \
-    mainview.h
+    mainview.h \
+    client.h
 
 FORMS += \
         mainwindow.ui \
