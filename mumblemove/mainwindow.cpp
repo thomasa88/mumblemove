@@ -47,9 +47,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Must use "new" as scene takes ownership of the item
     userAvatar = new Avatar();
-    userAvatar->setPos(scene.sceneRect().width() / 2.0,
-                       scene.sceneRect().height() / 2.0);
     userAvatar->setZValue(100.0);
+    userAvatar->setBorder(true);
+    moveAvatar(QPointF(scene.sceneRect().width() / 2.0, scene.sceneRect().height() / 2.0));
     scene.addItem(userAvatar);
 
     statusText = new QGraphicsSimpleTextItem();
@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     statusText->setZValue(200.0);
     scene.addItem(statusText);
 
-    connect(&scene, &Scene::mouseClick, this, &MainWindow::sceneClick);
+    connect(&scene, &Scene::mouseClick, this, &MainWindow::moveAvatar);
     connect(view, &MainView::contextMenu, this, &MainWindow::viewContextMenu);
     connect(view, &MainView::moveWindow, this, &MainWindow::moveWindow);
 
@@ -104,7 +104,7 @@ void MainWindow::setStatus(const QString &message)
     statusText->setToolTip(message);
 }
 
-void MainWindow::sceneClick(QPointF position)
+void MainWindow::moveAvatar(QPointF position)
 {
     userAvatar->setPos(position);
     emit client.updatePosition(position);
@@ -140,7 +140,6 @@ void MainWindow::userUpdated(quint64 id, const QString &name, const QColor &colo
 }
 
 void MainWindow::userRemoved(quint64 id) {
-    qDebug() << "USER REMOVED";
     if (others.contains(id)) {
         scene.removeItem(others[id]);
         others.remove(id);

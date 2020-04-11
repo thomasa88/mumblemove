@@ -47,7 +47,7 @@ signals:
 
 private slots:
     void windowLoaded();
-    void sceneClick(QPointF position);
+    void moveAvatar(QPointF position);
     void viewContextMenu(QContextMenuEvent *event);
     void moveWindow(int x, int y);
 

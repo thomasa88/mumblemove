@@ -19,6 +19,11 @@ void Avatar::setColor(const QColor &color) {
     update();
 }
 
+void Avatar::setBorder(bool on) {
+    border = on;
+    update();
+}
+
 QRectF Avatar::boundingRect() const
 {
     return QRectF(-10, -10, 20, 20);
@@ -28,7 +33,9 @@ void Avatar::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-    painter->setPen(QPen(Qt::NoPen));
+    if (!border) {
+        painter->setPen(QPen(Qt::NoPen));
+    }
     painter->setBrush(QBrush(color));
     painter->drawEllipse(boundingRect());
     painter->setPen(QPen(Qt::black));
