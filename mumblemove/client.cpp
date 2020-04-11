@@ -47,6 +47,7 @@ void Client::updatePosition(const QPointF &position) {
 }
 
 void Client::send() {
+    qDebug() << "Send";
     info.remove = !stayConnected;
     //if (connection.isConnected()) {
         dataStream << info;
@@ -54,25 +55,31 @@ void Client::send() {
 }
 
 void Client::receive() {
-    dataStream.startTransaction();
+    qDebug() << "Receive";
     ClientInfo otherClientInfo;
-    dataStream >> otherClientInfo;
-    if (!dataStream.commitTransaction()) {
-        // Need to receive more
-        return;
-    }
-    if (!stayConnected) {
-        return;
-    }
-    if (otherClientInfo.remove) {
-        otherClients.remove(otherClientInfo.id);
-        emit clientRemoved(otherClientInfo.id);
-    } else {
-        otherClients.insert(otherClientInfo.id, otherClientInfo);
-        emit gotPosition(otherClientInfo.id,
-                         otherClientInfo.name,
-                         QColor::fromRgb(otherClientInfo.color),
-                         otherClientInfo.position);
+    while (!dataStream.atEnd()) {
+        dataStream.startTransaction();
+        dataStream >> otherClientInfo;
+        if (!dataStream.commitTransaction()) {
+            // Need to receive more
+            return;
+        }
+
+        if (!stayConnected) {
+            // Just flush the socket. Skip?
+            //continue;
+            return;
+        }
+        if (otherClientInfo.remove) {
+            otherClients.remove(otherClientInfo.id);
+            emit clientRemoved(otherClientInfo.id);
+        } else {
+            otherClients.insert(otherClientInfo.id, otherClientInfo);
+            emit gotPosition(otherClientInfo.id,
+                             otherClientInfo.name,
+                             QColor::fromRgb(otherClientInfo.color),
+                             otherClientInfo.position);
+        }
     }
 }
 

@@ -15,6 +15,7 @@
 
 
 MumbleLink::MumbleLink(QObject *parent) {
+    Q_UNUSED(parent);
 #ifdef _WIN32
     HANDLE hMapObject = OpenFileMappingW(FILE_MAP_ALL_ACCESS, FALSE, L"MumbleLink");
     if (hMapObject == NULL)

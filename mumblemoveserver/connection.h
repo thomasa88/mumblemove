@@ -14,10 +14,10 @@ public:
     virtual ~Connection() = default;
 
     const ClientInfo &getClientInfo() const;
-    void send(const ClientInfo &clientInfoBuf);
+    void send(const ClientInfo &clientInfo);
 
 signals:
-    void clientUpdate(const ClientInfo &clientInfoBuf);
+    void clientUpdate(const ClientInfo &clientInfo);
     void connectionError(const QString &message);
 
 public slots:
@@ -31,7 +31,7 @@ private slots:
 private:
     QSharedPointer<QAbstractSocket> socket;
     QDataStream dataStream;
-    ClientInfo clientInfoBuf;
+    ClientInfo clientInfo;
     quint64 clientId;
 };
 
