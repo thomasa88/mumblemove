@@ -16,7 +16,7 @@
 #include <QVariant>
 
 // TODO: Work the whole scene in meters?
-const qreal PIXELS_PER_METER = 7.0;
+const qreal PIXELS_PER_METER = 5.0;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
