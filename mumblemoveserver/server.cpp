@@ -11,7 +11,7 @@ Server::Server() {
 }
 
 void Server::run() {
-    qInfo() << "MumbleMove Server";
+    qInfo() << "MumbleMove Server " VERSION;
     if (!tcpServer.listen(QHostAddress::Any, PORT)) {
         qWarning() << "Failed to listen on port" << PORT;
         qApp->exit(1);

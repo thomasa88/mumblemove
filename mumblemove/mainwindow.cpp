@@ -61,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
     statusText->setBrush(Qt::gray);
     statusText->setZValue(200.0);
     scene.addItem(statusText);
+    setStatus("Disconnected");
 
     ScaleIndicator *scaleIndicator = new ScaleIndicator(PIXELS_PER_METER);
     scaleIndicator->setPos(2, scene.sceneRect().height() - 3.0);
@@ -138,6 +139,7 @@ void MainWindow::moveAvatar(QPointF position)
 void MainWindow::viewContextMenu(QContextMenuEvent *event)
 {
     QMenu menu;
+    menu.addAction("MumbleMove " VERSION);
     menu.addAction("Ctrl+Mouse to move window");
     menu.addSeparator();
     menu.addAction("&Settings...", this, &MainWindow::showSettings);
