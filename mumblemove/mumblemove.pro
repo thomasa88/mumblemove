@@ -35,7 +35,6 @@ SOURCES += \
     mumblelink.cpp \
     avatar.cpp \
     scene.cpp \
-    testobj.cpp \
     settingsdialog.cpp \
     mainview.cpp \
     client.cpp \
@@ -46,7 +45,6 @@ HEADERS += \
     mumblelink.h \
     avatar.h \
     scene.h \
-    testobj.h \
     settingsdialog.h \
     mainview.h \
     client.h \
