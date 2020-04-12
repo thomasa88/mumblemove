@@ -13,7 +13,8 @@
 // |/
 // o------> x
 //
-// Looking from the top, as on a map. Our character (@) looking to the sky.
+// Looking from the top, as on a map. Our character (@) looking to the sky, to get balanced sound.
+// Note: Having one ear up (sky) and one down (floor) did not work out well in testing.
 //
 //    z
 //    ^      @ front     pos   = (x, 0, z)
@@ -69,30 +70,23 @@ MumbleLink::MumbleLink(QObject *parent) {
         return;
     }
 
-    lm = (LinkedMem *)(mmap(nullptr, sizeof(struct LinkedMem), PROT_READ | PROT_WRITE, MAP_SHARED, shmfd,0));
+    lm = reinterpret_cast<LinkedMem *>(mmap(nullptr, sizeof(struct LinkedMem), PROT_READ | PROT_WRITE, MAP_SHARED, shmfd,0));
 
     if (lm == reinterpret_cast<void*>(-1)) {
         lm = nullptr;
         return;
     }
 #endif
+
+    initStaticValues();
 }
 
-MumbleLink::~MumbleLink()
-{
-
-}
-
-void MumbleLink::update(const QString &name, const QPointF& userPositionMeters) {
-    if (lm == nullptr)
-        return;
-
+void MumbleLink::initStaticValues() {
     if(lm->uiVersion != 2) {
         wcsncpy(lm->name, L"MumbleMove", 256);
         wcsncpy(lm->description, L"MumbleMove.", 2048);
         lm->uiVersion = 2;
     }
-    lm->uiTick++; // Should this be updated after updating all values???
 
     // Left handed coordinate system.
     // X positive towards "right".
@@ -110,6 +104,17 @@ void MumbleLink::update(const QString &name, const QPointF& userPositionMeters) 
     lm->fAvatarTop[0] = 0.0f;
     lm->fAvatarTop[1] = 0.0f;
     lm->fAvatarTop[2] = -1.0f;
+}
+
+MumbleLink::~MumbleLink() {
+
+}
+
+void MumbleLink::update(const QString &name, const QPointF& userPositionMeters) {
+    if (lm == nullptr)
+        return;
+
+    lm->uiTick++; // Should this be updated after updating all values???
 
     // Position of the avatar
     lm->fAvatarPosition[0] = static_cast<float>(userPositionMeters.x());

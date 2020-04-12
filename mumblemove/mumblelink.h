@@ -43,6 +43,8 @@ private:
         wchar_t description[2048];
     };
 
+    void initStaticValues();
+
     LinkedMem *lm = nullptr;
 
 signals:
