@@ -74,9 +74,27 @@ MumbleMove displays an error if it cannot connect to MumbleMove Server.
 
 The scale indicator relates to the positional audio settings in Mumble.
 
-## Building MumbleMove
+## Developing
 
-To be added.
+MumbleMove is developed on Linux using Qt Creator.
 
+### Building using Qt Creator
 
+The Linux applications can be built using Qt Creator.
+
+### Building in Console
+
+The applications can be built in the console using `build.sh`. 
+
+```
+Usage: ./build.sh linux|windows [debug|release]
+
+Files are output in the build directory.
+```
+
+Building for Windows requires Mingw-w64. A Docker is containing Mingw-w64 is provided. Docker needs to be installed for this to work.
+
+Build the Docker image using `./builddocker.sh`. `./build.sh` will automatically use the Docker image.
+
+The Docker image can also be manually started using `./rundocker.sh`.
 
