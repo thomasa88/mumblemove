@@ -20,19 +20,51 @@ Audio is communicated through Murmur and position is communicated through Mumble
 
 ![Setup with 2 users](doc/mumblemove_setup.png)
 
-### Servers
+## Installation
+
+### Murmur (Mumble server)
 
 Download Murmur from the [Mumble downloads page](https://www.mumble.info/downloads/). For Windows, Murmur is part of the Mumble installer.
 
-Download MumbleMove Server from the MumbleMove [release page](https://github.com/thomasa88/mumblemove/releases).
+Murmur can be installed using APT in Ubuntu:
 
-Start both servers.
+```
+sudo apt install mumble-server
+```
 
 ### Mumble
 
 Download and install Mumble from the [Mumble downloads page](https://www.mumble.info/downloads/).
 
-#### Audio Configuration
+Mumble can be installed using APT in Ubuntu:
+
+```
+sudo apt install mumble
+```
+
+### MumbleMove Server
+
+Download MumbleMove Server from the MumbleMove [release page](https://github.com/thomasa88/mumblemove/releases).
+
+MumbleMove Server depends on Qt Core and Qt Network. The following command can be used in Ubuntu to install the dependencies:
+
+```
+sudo apt install libqt5network5 libqt5core5a
+```
+
+### MumbleMove
+
+Download MumbleMove Server from the MumbleMove [release page](https://github.com/thomasa88/mumblemove/releases).
+
+MumbleMove Server depends on Qt Core, Qt Network, Qt Gui and Qt Widgets. The following command can be used in Ubuntu to install the dependencies:
+
+```
+sudo apt install libqt5widgets5 libqt5gui5 libqt5network5 libqt5core5a
+```
+
+## Configuration
+
+### Mumble Audio Configuration
 
 Start Mumble and follow the Audio Wizard. Make sure to check *Enable positional audio* and *Use headphones*.
 
@@ -46,11 +78,11 @@ Then open Configure -> Settings... and configure as follows:
 
 To get rid of the G15 helper window, go to the LCD page and uncheck *Logitech Gamepanel*.
 
-#### Connecting to Murmur
+### Connecting to Murmur
 
 Click Server -> Connect... and add the Murmur server. Leave the default port.
 
-### MumbleMove
+### MumbleMove Configuration
 
 Start MumbleMove and enter the address to the MumbleMove server. Also enter your name and select a color.
 
