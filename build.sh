@@ -43,8 +43,13 @@ else
     if [[ $OS == "linux" ]]; then
         QMAKE_ARGS="CONFIG+=debug"
     else
-        echo "Note: Not building with debug symbols for Windows"
-        echo "      Need debug build of QT to do that."
+        #QMAKE_ARGS="'DEFINES-=QT_NO_DEBUG_OUTPUT' 'DEFINES-=QT_NO_DEBUG'"
+        #echo "Note: Not building with debug symbols for Windows"
+        #echo "      Need debug build of QT to do that."
+        echo "The QT in Docker does not have debug symbols and I have not found"
+        echo "how to enable debug output in a QT release build."
+        echo "Please build a release build instead."
+        exit 1
     fi
 fi
 
