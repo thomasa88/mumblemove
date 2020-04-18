@@ -106,6 +106,12 @@ MumbleMove displays an error if it cannot connect to MumbleMove Server.
 
 The scale indicator relates to the positional audio settings in Mumble.
 
+## Security and Firewalls
+
+Mumblemove has no built-in security, and as such, it should probably not be exposed to the public Internet. Packet parsing relies on Qt serialization. There is no packet rate limit.
+
+Mumblemove Server listens on port 49079 (TCP).
+
 ## Developing
 
 MumbleMove is developed on Linux using Qt Creator.
