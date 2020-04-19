@@ -67,46 +67,68 @@
 #endif
 
 
-MumbleLink::MumbleLink(QObject *parent) {
+MumbleLink::MumbleLink(QObject *parent)
+{
     Q_UNUSED(parent);
-#ifdef _WIN32
-    HANDLE hMapObject = OpenFileMappingW(FILE_MAP_ALL_ACCESS, FALSE, L"MumbleLink");
-    if (hMapObject == NULL)
-        return;
+}
 
-    lm = (LinkedMem *) MapViewOfFile(hMapObject, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(LinkedMem));
-    if (lm == NULL) {
+bool MumbleLink::link()
+{
+    if (lm != nullptr) {
+        return true;
+    }
+
+#ifdef _WIN32
+    hMapObject = OpenFileMappingW(FILE_MAP_ALL_ACCESS, FALSE, L"MumbleLink");
+    if (hMapObject == nullptr)
+        return false;
+
+    lm = reinterpret_cast<LinkedMem *>(MapViewOfFile(hMapObject, FILE_MAP_ALL_ACCESS,
+                                                     0, 0, sizeof(LinkedMem)));
+    if (lm == nullptr) {
         CloseHandle(hMapObject);
-        hMapObject = NULL;
-        return;
+        hMapObject = nullptr;
+        return false;
     }
 #else
+    // We cannot know if Mumble has been restarted, doing shm_unlink()
+    // and then shm_open() to create a new shm file. The code will
+    // continue to use the existing memory that we have. (One workaround
+    // could be to poll for the file's existence, but it should not be
+    // done on every update. And it will be a race. Check the file date?)
+
     char memname[256];
     snprintf(memname, 256, "/MumbleLink.%d", getuid());
 
     int shmfd = shm_open(memname, O_RDWR, S_IRUSR | S_IWUSR);
 
     if (shmfd < 0) {
-        return;
+        return false;
     }
 
-    lm = reinterpret_cast<LinkedMem *>(mmap(nullptr, sizeof(struct LinkedMem), PROT_READ | PROT_WRITE, MAP_SHARED, shmfd,0));
+    lm = reinterpret_cast<LinkedMem *>(mmap(nullptr, sizeof(LinkedMem),
+                                            PROT_READ | PROT_WRITE, MAP_SHARED,
+                                            shmfd, 0));
+
+    // We can close the fd after mapping the memory, according to the shm_open man page.
+    close(shmfd);
 
     if (lm == reinterpret_cast<void*>(-1)) {
         lm = nullptr;
-        return;
+        return false;
     }
 #endif
 
     initStaticValues();
+
+    return true;
 }
 
-void MumbleLink::initStaticValues() {
-    if(lm->uiVersion != 2) {
-        wcsncpy(lm->name, L"MumbleMove", 256);
-        wcsncpy(lm->description, L"MumbleMove.", 2048);
-        lm->uiVersion = 2;
-    }
+void MumbleLink::initStaticValues()
+{
+    wcsncpy(lm->name, L"MumbleMove", 256);
+    wcsncpy(lm->description, L"MumbleMove.", 2048);
+    lm->uiVersion = 2;
 
     // Left handed coordinate system.
     // X positive towards "right".
@@ -126,15 +148,27 @@ void MumbleLink::initStaticValues() {
     lm->fAvatarTop[2] = -1.0f;
 }
 
-MumbleLink::~MumbleLink() {
-
+MumbleLink::~MumbleLink()
+{
+    if (lm != nullptr) {
+#ifdef _WIN32
+        UnmapViewOfFile(lm);
+        CloseHandle(hMapObject);
+#else
+        munmap(lm, sizeof(LinkedMem));
+#endif
+    }
 }
 
-void MumbleLink::update(const QString &name, const QPointF& userPositionMeters) {
-    if (lm == nullptr)
+void MumbleLink::update(const QString &name, const QPointF& userPositionMeters)
+{
+    if (!link()) {
         return;
+    }
 
-    lm->uiTick++; // Should this be updated after updating all values???
+    // There is no synchronization. Mumble just hopes to fetch good data.
+    // The tick is just for the timeout handling.
+    lm->uiTick++;
 
     // Position of the avatar
     lm->fAvatarPosition[0] = static_cast<float>(userPositionMeters.x());

@@ -63,9 +63,13 @@ private:
         wchar_t description[2048];
     };
 
+    bool link();
     void initStaticValues();
 
     LinkedMem *lm = nullptr;
+#ifdef _WIN32
+    HANDLE hMapObject = nullptr;
+#endif
 
 signals:
 
